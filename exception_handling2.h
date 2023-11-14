@@ -68,7 +68,7 @@ typedef struct
 	volatile int catched;
 } ExceptionContext;
 
-#define MAX_EXCEPTION_CONTEXTS 10
+#define MAX_EXCEPTION_CONTEXTS 50
 _Thread_local ExceptionContext _ex_ctx[MAX_EXCEPTION_CONTEXTS] = {0};
 _Thread_local volatile int _ex_i = -1;
 _Thread_local volatile bool _init_signals = false;
