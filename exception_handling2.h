@@ -6,7 +6,7 @@
 /*   By: imurugar <imurugar@student.42madrid.com    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/10/13 10:44:55 by imurugar          #+#    #+#             */
-/*   Updated: 2023/10/19 18:33:59 by imurugar         ###   ########.fr       */
+/*   Updated: 2023/11/14 18:53:55 by imurugar         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -99,18 +99,18 @@ void _catch_sig_handle(int sig);
 			"Interrupted by signal: %s.\n", \
 			_exception_string[_ex_ctx[_ex_i]._trex - EX_BEGIN])
 
-#define _trace_if_triggered()       \
-	do                              \
-	{                               \
-		if (_ex_ctx[_ex_i]._trextrigger)           \
-			if (_ex_ctx[_ex_i]._trex >= SIG_BEGIN) \
-				_trace_signal();    \
-			else                    \
-				_trace_throw();     \
-		_ex_ctx[_ex_i]._trextrigger = false;       \
+#define _trace_if_triggered()     					  \
+	do                            					  \
+	{                             					  \
+		if (_ex_ctx[_ex_i]._trextrigger)         	  \
+			if (_ex_ctx[_ex_i]._trex >= SIG_BEGIN)	  \
+				_trace_signal();  					  \
+			else                  					  \
+				_trace_throw();    					  \
+		_ex_ctx[_ex_i]._trextrigger = false;  	      \
 	} while (false)
 
-#define print_error()                      \
+#define print_error()               \
 	_trace_if_triggered();
 	
 #define _bind_signals()                       \
@@ -121,57 +121,51 @@ void _catch_sig_handle(int sig);
 		_init_signals = true;                 \
 	} while (false)
 
-#define try                                \
-	if (!_init_signals)                    \
-		_bind_signals();                   \
-	_ex_i++;                               \
-	_ex_ctx[_ex_i].catched = false;         \
-	_ex_ctx[_ex_i]._catch_value = setjmp(_ex_ctx[_ex_i]._catch_jmp_buf); \
-	printf(" ctx %d\n", _ex_i);\
-	if (_ex_ctx[_ex_i]._retry_attempt)                    \
-	{                                      \
-		_ex_ctx[_ex_i]._catch_value = 0;                  \
-		_ex_ctx[_ex_i]._retry_attempt = false;            \
-		_ex_ctx[_ex_i].catched = false;         \
-	}                                      \
+#define try                             								    \
+	if (!_init_signals)                 							   	    \
+		_bind_signals();               									    \
+	_ex_i++;                              									\
+	_ex_ctx[_ex_i].catched = false;        									\
+	_ex_ctx[_ex_i]._catch_value = setjmp(_ex_ctx[_ex_i]._catch_jmp_buf); 	\
+	if (_ex_ctx[_ex_i]._retry_attempt)                    					\
+	{                                      									\
+		_ex_ctx[_ex_i]._catch_value = 0;                 					\
+		_ex_ctx[_ex_i]._retry_attempt = false;            					\
+		_ex_ctx[_ex_i].catched = false;        								\
+	}                                      									\
 	if (!_ex_ctx[_ex_i]._catch_value && _ex_ctx[_ex_i].catched == false)
 
-#define catch(X)                               \
-	else if (_ex_ctx[_ex_i]._catch_value == X && _ex_ctx[_ex_i].catched == true) \
-		_ex_i--; \
-		printf("in catch %d\n", _ex_i);           \
+#define catch(X)                               										\
+	else if (_ex_ctx[_ex_i]._catch_value == X && _ex_ctx[_ex_i].catched == true) 	\
+		_ex_i--; 																	\
 
-#define catch_all  \
-	else if (_ex_ctx[_ex_i].catched == true)           \
-		_ex_i--; \
-		printf("in catch_all %d\n", _ex_i);           \
+#define catch_all  										\
+	else if (_ex_ctx[_ex_i].catched == true)            \
+		_ex_i--; 										\
 
 #define finally
 
-#define throw(X)                         \
-	do                                   \
-	{                                    \
-		printf("in throw %d\n", _ex_i);           \
-		_ex_ctx[_ex_i].catched = true; \
-		_trace_prepare(X);               \
-		longjmp(_ex_ctx[_ex_i]._catch_jmp_buf, X);      \
+#define throw(X)                        				 \
+	do                                 	  				 \
+	{                                    				 \
+		_ex_ctx[_ex_i].catched = true;   				 \
+		_trace_prepare(X);               				 \
+		longjmp(_ex_ctx[_ex_i]._catch_jmp_buf, X);       \
 	} while (false)
 
-#define retry()                          \
-	do                                   \
-	{                          \
-		if (_ex_ctx[_ex_i + 1]._catch_value != 0)                        \
-		{      \
-			_ex_i++; \
-			printf("ret %d\n", _ex_ctx[_ex_i]._catch_value);           \
+#define retry()                          					\
+	do                                  			 		\
+	{                          								\
+		if (_ex_ctx[_ex_i + 1]._catch_value != 0)           \
+		{      												\
+			_ex_i++; 										\
 			_ex_ctx[_ex_i]._retry_attempt = true;           \
 			longjmp(_ex_ctx[_ex_i]._catch_jmp_buf, 1);      \
-		}   \
+		}   												\
 	} while (false)
 
 void _catch_sig_handle(int sig)
 {
-	printf("_catch_sig_handle %d\n", sig);           \
 	switch (sig)
 	{
 	case SIGFPE:
