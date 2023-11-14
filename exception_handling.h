@@ -6,7 +6,7 @@
 /*   By: imurugar <imurugar@student.42madrid.com    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/10/13 10:44:55 by imurugar          #+#    #+#             */
-/*   Updated: 2023/10/19 18:39:53 by imurugar         ###   ########.fr       */
+/*   Updated: 2023/11/14 19:08:51 by imurugar         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -89,19 +89,22 @@ void _catch_sig_handle(int sig);
 			"Interrupted by signal: %s.\n", \
 			_exception_string[_trex - EX_BEGIN])
 
-#define _trace_if_triggered()       \
+#define print_error()       		\
 	do                              \
 	{                               \
 		if (_trextrigger)           \
+		{							\
 			if (_trex >= SIG_BEGIN) \
+			{						\
 				_trace_signal();    \
+			}						\
 			else                    \
+			{						\
 				_trace_throw();     \
+			}						\
+		}							\
 		_trextrigger = false;       \
 	} while (false)
-
-#define print_error()                      \
-	_trace_if_triggered();
 	
 #define _bind_signals()                       \
 	do                                        \
