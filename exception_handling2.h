@@ -99,19 +99,22 @@ void _catch_sig_handle(int sig);
 			"Interrupted by signal: %s.\n",							\
 			_exception_string[_ex_ctx[_ex_i]._trex - EX_BEGIN])
 
-#define _trace_if_triggered()	 					\
+#define print_error()	 							\
 	do												\
 	{							 					\
 		if (_ex_ctx[_ex_i]._trextrigger)		 	\
+		{											\
 			if (_ex_ctx[_ex_i]._trex >= SIG_BEGIN)	\
+			{										\
 				_trace_signal();  					\
+			}										\
 			else				  					\
+			{										\
 				_trace_throw();						\
+			}										\
+		}											\
 		_ex_ctx[_ex_i]._trextrigger = false;  		\
 	} while (false)
-
-#define print_error()			\
-	_trace_if_triggered();
 	
 #define _bind_signals()					 		\
 	do											\
