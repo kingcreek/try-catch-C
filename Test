@@ -1,0 +1,94 @@
+/* ************************************************************************** */
+/*                                                                            */
+/*                                                        :::      ::::::::   */
+/*   exception_handling.h                               :+:      :+:    :+:   */
+/*                                                    +:+ +:+         +:+     */
+/*   By: imurugar <imurugar@student.42madrid.com    +#+  +:+       +#+        */
+/*                                                +#+#+#+#+#+   +#+           */
+/*   Created: 2023/10/13 10:44:55 by imurugar          #+#    #+#             */
+/*   Updated: 2023/11/14 19:08:51 by imurugar         ###   ########.fr       */
+/*                                                                            */
+/* ************************************************************************** */
+
+#ifndef EXCEPTION_HANDLING_H
+#define EXCEPTION_HANDLING_H 1
+
+#include <setjmp.h>
+#include <signal.h>
+#include <stdint.h>
+#include <stdbool.h>
+#include <stdio.h>
+
+#define EX_BEGIN 0xA0
+#define SIG_BEGIN 0xA6
+#define SIG_MAX 0x20
+
+enum myexception
+{
+	EX_OVERFLOW = 0xA0,
+	EX_RANGE = 0xA1,
+	EX_EOF = 0xA2,
+	EX_NULLPTR = 0xA3,
+	EX_MEMORY = 0xA4,
+	EX_FILE = 0xA5,
+	EX_SIGFPE = 0xA6,
+	EX_SIGILL = 0xA7,
+	EX_SIGSEGV = 0xA8,
+	EX_SIGABRT = 0xA9,
+	EX_SIGINT = 0xAA,
+	EX_SIGTERM = 0xAB
+};
+
+typedef struct {
+	jmp_buf jmp_buf;
+	int value;
+	bool retry_attempt;
+} CatchBlock;
+
+_Thread_local CatchBlock _catch_stack[64]; // Adjust the size based on your needs
+_Thread_local int _catch_stack_size = 0;
+
+// add all code
+
+#define try                                       \
+	if (!_init_signals)                           \
+		_bind_signals();                          \
+	if (_catch_stack_size < 64) {                \
+		_catch_stack[_catch_stack_size].value = setjmp(_catch_stack[_catch_stack_size].jmp_buf); \
+		_catch_stack[_catch_stack_size].retry_attempt = false; \
+		_catch_stack_size++;                      \
+	}                                            \
+	if (!_catch_stack[_catch_stack_size - 1].value)
+
+#define finally                                  \
+	if (_catch_stack_size > 0) {                \
+		_catch_stack_size--;                     \
+		if (_catch_stack[_catch_stack_size].retry_attempt) \
+			longjmp(_catch_stack[_catch_stack_size].jmp_buf, 1); \
+	}
+
+#define catch(X) \
+	else if (_catch_stack[_catch_stack_size - 1].value == X)
+
+#define catch_all \
+	else
+
+#define throw(X)                         \
+	do                                   \
+	{                                    \
+		_trace_prepare(X);               \
+		longjmp(_catch_stack[_catch_stack_size - 1].jmp_buf, X); \
+	} while (false)
+
+#define retry()                          \
+	do                                   \
+	{                                    \
+		if (_catch_stack_size > 0 && _catch_stack[_catch_stack_size - 1].value != 0) { \
+			_catch_stack[_catch_stack_size - 1].retry_attempt = true; \
+			longjmp(_catch_stack[_catch_stack_size - 1].jmp_buf, 1); \
+		}                                \
+	} while (false)
+
+// Rest of the code remains unchanged
+
+#endif
